@@ -1,0 +1,125 @@
+Sub calculateStock()
+    'Create variables
+    Dim currentTicker As String
+    Dim uniqueTicker As String
+    Dim currentRow As Long
+    Dim firstRow As Long
+    Dim lastRow As Long
+    Dim uniqueTickerRow As Long
+    Dim openingPrice As Currency
+    Dim closingPrice As Currency
+    Dim yearlyChange As Currency
+    Dim percentChange As Double
+    Dim stockCount As Double
+    Dim greatestIncrease As Double
+    Dim greatestDecrease As Double
+    Dim greatestStock As Double
+    Dim currentPercentChange As Double
+    Dim currentTotalStock As Double
+    Dim greatestIncreaseTicker As String
+    Dim greatestDecreaseTicker As String
+    Dim greatestStockTicker As String
+        
+    'Define variables
+    firstRow = 2
+    lastRow = ActiveSheet.Range("A2").End(xlDown).Row - 1
+    uniqueTicker = ""
+    uniqueTickerRow = 1
+
+    
+    'Define headers
+    Range("I1").Value = "Ticker"
+    Range("J1").Value = "Yearly Change"
+    Range("K1").Value = "Percent Change"
+    Range("L1").Value = "Total Stock Volume"
+    
+    
+    'Go through each row finding unique tickers
+    For currentRow = firstRow To lastRow
+        
+        currentTicker = Cells(currentRow, 1).Value
+        If currentTicker <> uniqueTicker Then
+        
+            'set values for new ticker
+            openingPrice = Cells(currentRow, 3)
+            uniqueTicker = currentTicker
+            uniqueTickerRow = uniqueTickerRow + 1
+            Cells(uniqueTickerRow, 9).Value = uniqueTicker
+            Cells(uniqueTickerRow, 11).NumberFormat = "0.00%"
+            stockCount = Cells(currentRow, 7)
+        Else
+        
+            'calculate values for current ticker
+            closingPrice = Cells(currentRow, 6)
+            yearlyChange = closingPrice - openingPrice
+            Cells(uniqueTickerRow, 10).Value = yearlyChange
+            percentChange = ((closingPrice / openingPrice) - 1)
+            Cells(uniqueTickerRow, 11).Value = percentChange
+            stockCount = Cells(currentRow, 7) + stockCount
+            Cells(uniqueTickerRow, 12).Value = stockCount
+            
+            'Colour cells
+            If percentChange < 0 Then
+                'Colour red if negative change
+                Cells(uniqueTickerRow, 10).Interior.Color = RGB(255, 0, 0)
+                Cells(uniqueTickerRow, 11).Interior.Color = RGB(255, 0, 0)
+            Else
+                'Colour green if positive change
+                Cells(uniqueTickerRow, 10).Interior.Color = RGB(0, 255, 0)
+                Cells(uniqueTickerRow, 11).Interior.Color = RGB(0, 255, 0)
+            End If
+            
+        End If
+    Next currentRow
+
+    'define headers for extreme values
+    Range("O1").Value = "Ticker"
+    Range("P1").Value = "Value"
+    Range("N2").Value = "Greatest % Increase"
+    Range("N3").Value = "Greatest % Decrease"
+    Range("N4").Value = "Greatest Total Volume"
+
+    'go through each row in summary data to find extreme values
+    greatestIncrease = 0
+    greatestDecrease = 0
+    greatestStock = 0
+    firstRow = 2
+    lastRow = ActiveSheet.Range("I2").End(xlDown).Row - 1
+    
+    For currentRow = firstRow To lastRow
+
+        currentTicker = Cells(currentRow, 9).Value
+        currentPercentChange = Cells(currentRow, 11).Value
+        currentTotalStock = Cells(currentRow, 12).Value
+        
+        'check for greatest increase
+        If greatestIncrease < currentPercentChange Then
+            greatestIncrease = currentPercentChange
+            greatestIncreaseTicker = currentTicker
+        End If
+        
+        'check for greatest decrease
+        If greatestDecrease > currentPercentChange Then
+            greatestDecrease = currentPercentChange
+            greatestDecreaseTicker = currentTicker
+        End If
+        
+        'check for greatest total stock volume
+        If greatestStock < currentTotalStock Then
+            greatestStock = currentTotalStock
+            greatestStockTicker = currentTicker
+        End If
+        
+    Next currentRow
+        
+    'Report the extreme values
+    Range("O2").Value = greatestIncreaseTicker
+    Range("P2").NumberFormat = "0.00%"
+    Range("P2").Value = greatestIncrease
+    Range("O3").Value = greatestDecreaseTicker
+    Range("P3").NumberFormat = "0.00%"
+    Range("P3").Value = greatestDecrease
+    Range("O4").Value = greatestStockTicker
+    Range("P4").Value = greatestStock
+
+End Sub
